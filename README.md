@@ -78,6 +78,192 @@ Exempel: användare <-> git repos, spelare <-> spel
 
 ---
 
+# Many-to-Many exempel: Spelare <-> Spel
+
+```md
+players:
+| id | name    |
+| -- | ------- |
+| 1  | Alice   |
+| 2  | Bob     |
+| 3  | Charlie |
+
+games:
+| id | title      |
+| -- | ---------- |
+| 1  | Minecraft  |
+| 2  | Fortnite   |
+
+player_games (junction table):
+| player_id | game_id |
+| --------- | ------- |
+| 1         | 1       |
+| 1         | 2       |
+| 2         | 1       |
+| 3         | 2       |
+```
+
+Alice spelar både Minecraft och Fortnite.
+Minecraft spelas av både Alice och Bob.
+
+---
+
+# Skapa relationer i PostgreSQL
+
+```sql
+CREATE TABLE humans (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    age INTEGER
+);
+
+CREATE TABLE pets (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    owner_id INTEGER REFERENCES humans(id)
+);
+```
+
+`REFERENCES` skapar en foreign key constraint som säkerställer att `owner_id` måste matcha ett existerande `humans.id`.
+
+---
+
+# Vad är en JOIN?
+
+En JOIN kombinerar data från flera tabeller baserat på en relation.
+
+Utan JOIN:
+```sql
+SELECT * FROM pets WHERE owner_id = 1;
+```
+
+Visar bara husdjur, inte ägarens info.
+
+Med JOIN:
+```sql
+SELECT * FROM pets
+JOIN humans ON pets.owner_id = humans.id;
+```
+
+Kombinerar data från både pets OCH humans i resultatet.
+
+---
+
+# INNER JOIN
+
+Den vanligaste typen av join. Returnerar endast rader där det finns matchningar i BÅDA tabellerna.
+
+```sql
+SELECT humans.name, pets.name AS pet_name
+FROM humans
+INNER JOIN pets ON pets.owner_id = humans.id;
+```
+
+Resultat:
+```md
+| name   | pet_name |
+| ------ | -------- |
+| Bob    | Charlie  |
+| Bob    | Oskar    |
+| Rachel | Nevad    |
+```
+
+---
+
+# LEFT JOIN
+
+Returnerar ALLA rader från vänster tabell, även om det inte finns matchning i höger tabell.
+
+```sql
+SELECT humans.name, pets.name AS pet_name
+FROM humans
+LEFT JOIN pets ON pets.owner_id = humans.id;
+```
+
+Om Alice finns i humans men inte har husdjur:
+```md
+| name   | pet_name |
+| ------ | -------- |
+| Bob    | Charlie  |
+| Bob    | Oskar    |
+| Rachel | Nevad    |
+| Alice  | NULL     |
+```
+
+---
+# RIGHT JOIN och FULL JOIN
+
+**RIGHT JOIN**: Alla rader från höger tabell, även utan matchning i vänster.
+
+**FULL JOIN**: Alla rader från BÅDA tabellerna, även utan matchningar.
+
+```sql
+-- RIGHT JOIN
+SELECT * FROM pets
+RIGHT JOIN humans ON pets.owner_id = humans.id;
+
+-- FULL JOIN
+SELECT * FROM pets
+FULL JOIN humans ON pets.owner_id = humans.id;
+```
+
+RIGHT JOIN används sällan (använd LEFT JOIN istället genom att byta ordning på tabellerna).
+
+---
+
+# Many-to-Many med junction-tabell
+
+För att skapa en Many-to-Many relation behövs en mellanliggande tabell (junction table).
+
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+CREATE TABLE repos (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+CREATE TABLE user_repos (
+    user_id INTEGER REFERENCES users(id),
+    repo_id INTEGER REFERENCES repos(id),
+    PRIMARY KEY (user_id, repo_id)
+);
+```
+
+---
+
+# JOIN med junction-tabell
+
+För att hämta alla repos en användare har tillgång till:
+
+```sql
+SELECT users.name, repos.name AS repo_name
+FROM users
+JOIN user_repos ON users.id = user_repos.user_id
+JOIN repos ON user_repos.repo_id = repos.id
+WHERE users.name = 'Bob';
+```
+
+Man kan kedja flera JOINs för att navigera genom relationer.
+
+
+---
+
+# Sammanfattning
+
+- Relationer länkar samman rader mellan tabeller
+- Primary key = unik identifierare
+- Foreign key = referens till primary key
+- JOIN kombinerar data från flera tabeller
+- INNER JOIN = endast matchningar
+- LEFT JOIN = alla från vänster + matchningar
+- Many-to-Many = kräver junction-tabell
+
+---
+
 # Gruppövning: Relationer och Joins i PostgreSQL
 
 ## Scenario: Musikstreamingtjänst
