@@ -1,18 +1,18 @@
 ---
-author: Lektion 4 - SQL i Java
+author: Lektion 4 - Relationer och joins
 date: MMMM dd, YYYY
 paging: "%d / %d"
 ---
 
-# Lektion 3
+# Lektion 4
 
 ## Dagens agenda
 
 1. Frågor och repetition
-3. Introduktion till relationer
-4. Introduktion till joins
-5. Kahoot quiz
-4. Övning med handledning
+2. Introduktion till relationer
+3. Introduktion till joins
+4. Gruppövning
+5. Eget arbete med handledning
 
 ---
 
